@@ -111,11 +111,17 @@ class Normalizer:
         self.node_mean, self.node_std = node_mean, node_std
         self.glob_mean, self.glob_std = glob_mean, glob_std
 
+    @staticmethod
+    def _scale(std):
+        # A column that never changes in the training rows (for example the one-hot of a face that is held
+        # out) is left unscaled. Dividing it by ~1e-6 would turn a 1 at test time into 1,000,000.
+        return np.where(std < 1e-6, 1.0, std + 1e-6)
+
     @classmethod
     def fit(cls, node_x, glob_x):
         """node_x: (n, parts, features), glob_x: (n, features), both from the training rows."""
         nx = node_x.reshape(-1, node_x.shape[-1])
-        return cls(nx.mean(0), nx.std(0) + 1e-6, glob_x.mean(0), glob_x.std(0) + 1e-6)
+        return cls(nx.mean(0), cls._scale(nx.std(0)), glob_x.mean(0), cls._scale(glob_x.std(0)))
 
     def node(self, x):
         return (x - self.node_mean) / self.node_std

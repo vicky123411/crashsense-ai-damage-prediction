@@ -71,6 +71,17 @@ def test_normalizer_uses_training_rows_only(small_data):
     assert np.allclose(again.node_mean, norm.node_mean)
 
 
+def test_normalizer_leaves_constant_columns_alone(small_data):
+    """The face split never shows the rear in training, so that one-hot column is constant there."""
+    tr, _, te = dataset.make_split(small_data, "face", holdout_face="rear")
+    gx = small_data["glob_x"][tr]
+    col = GLOBAL_FEATURE_NAMES.index("face_rear")
+    assert gx[:, col].std() == 0
+    norm = dataset.Normalizer.fit(small_data["node_x"][tr], gx)
+    z = norm.glob(small_data["glob_x"][te])
+    assert np.abs(z).max() < 100          # used to be 1e6 for the unseen face
+
+
 def test_external_labels_round_trip(tmp_path):
     rng = np.random.default_rng(2)
     scenarios = [dataset.random_scenario(rng) for _ in range(12)]
