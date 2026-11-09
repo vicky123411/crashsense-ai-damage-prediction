@@ -1,0 +1,11 @@
+### default torch threads
+1000 random scenarios, 2 CPU cores, torch threads: 2
+physics layer, one request at a time:          0.44 ms
+trained model, one request at a time:          1.27 ms
+model, whole batch at once: features 0.18 ms + network 0.110 ms per scenario
+
+### 1 torch thread
+1000 random scenarios, 2 CPU cores, torch threads: 1
+physics layer, one request at a time:          0.44 ms
+trained model, one request at a time:          1.26 ms
+model, whole batch at once: features 0.18 ms + network 0.177 ms per scenario
