@@ -3,9 +3,10 @@
 Scripts that ask the Python server for a damage report and show it on a car and an obstacle.
 They only change how things look. They do not change how Unity's physics resolves the crash.
 
-> **Status:** the C# files have been checked for syntax but not compiled or run inside Unity.
-> Expect to fix small things (names, versions, materials) the first time you import them. They were
-> written for Unity 2021.3 or newer.
+> **Status:** the C# files were checked for syntax and compiled (C# 9, no errors) against stand-in Unity
+> types, which catches typos and wrong names between the scripts. They have not been compiled with the real
+> Unity assemblies or run inside Unity, so expect to fix small things (names, versions, materials) the first
+> time you import them. They were written for Unity 2021.3 or newer.
 
 ## Files (`Assets/Scripts/CollisionDamage/`)
 
@@ -51,8 +52,8 @@ They only change how things look. They do not change how Unity's physics resolve
 7. **Effects.** Drop particle prefabs into the applier (sparks, smoke, glass shards, debris, dust). Assign the
    airbag objects if you have them. All slots are optional.
 
-8. Try it without crashing anything: right-click `CarCrashController` →
-   *Test: 50 km/h into the front, concrete wall*.
+8. Try it without crashing anything: press Play, then right-click `CarCrashController` →
+   *Test: 50 km/h into the front, concrete wall* (the Python server must be running).
 
 ## Coordinates
 

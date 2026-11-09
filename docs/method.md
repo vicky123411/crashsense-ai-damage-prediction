@@ -326,6 +326,13 @@ different vehicle needs its own part list.
 * Quasi-static energy method: no time history, no rebound beyond e = 0.05, no friction, no rotation
   beyond the effective-mass term, no sliding off a glancing hit.
 * Damage scores are shares of what a part can absorb, not strains or stresses.
+* Damage spreads over the part graph with hand-set connection weights. Parts on the far side of a hit can come
+  out more damaged than in a real test (a left-side pole hit marks the right sill as crushed), and a stronger
+  rail passes more force to its neighbours, which can tear them off even though the crush is shallower.
+* Peak force is the largest value of a stepwise force curve. It jumps when the car reaches a stiff block such
+  as the engine, so treat it as a rough indicator.
+* Narrow hard obstacles (the steel edge and the steel pole) often pass through the whole car in the model. The
+  report then sets `went_through_car` and gives the unabsorbed energy.
 * The level thresholds, airbag triggers and effect rules are assumptions for visual purposes.
 * No occupants, no fire, no fracture modelling inside parts.
 * Nothing here has been compared with crash-test data.
