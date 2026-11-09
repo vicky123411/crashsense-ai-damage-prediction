@@ -16,7 +16,7 @@ models = list(res[splits[0]])
 
 
 def cell(runs, key, digits=3):
-    vals = [r[key] for r in runs if key in r]
+    vals = [r[key] for r in (runs or []) if key in r]
     if not vals:
         return "-"
     if len(vals) == 1:
@@ -30,5 +30,5 @@ for key, title, digits in [("damage_mae", "Damage MAE (mean absolute error of th
     print("| model | " + " | ".join(splits) + " |")
     print("|---|" + "---:|" * len(splits))
     for m in models:
-        print(f"| {m} | " + " | ".join(cell(res[s][m], key, digits) for s in splits) + " |")
+        print(f"| {m} | " + " | ".join(cell(res[s].get(m), key, digits) for s in splits) + " |")
     print()
