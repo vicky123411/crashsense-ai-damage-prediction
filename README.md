@@ -2,6 +2,9 @@
 
 Predicts how a car **and the object it hits** look after a crash, part by part, so that a game engine can show it.
 
+**Live demo: <https://vicky123411.github.io/crashsense-ai-damage-prediction/>**. Set up a crash in your browser and see
+the damage; nothing to install (more under [Website](#website)).
+
 You give it a speed, where the car is hit (side, position along that side, angle), what the car is made of
 (steel grade and sheet thickness per part, total mass) and what it hits (concrete, steel, wood or foam; flat, round
 or sharp; fixed or free to move). You get back:
@@ -46,6 +49,8 @@ predicted from speed, materials and hit position, so that artists and tools can 
 * **Learned models** (`crashdamage/models.py`): a graph neural network on the part graph, compared with a flat MLP,
   a per-part MLP, gradient boosting and a no-learning energy baseline.
 * **Unity bridge** (`unity/`, `crashdamage/serve.py`): a small HTTP server and C# scripts.
+* **Website** (`docs/`): the physics layer and the demo model written again in JavaScript, in one static page that
+  runs in the browser without a server.
 
 ## Quick start
 
@@ -55,9 +60,10 @@ pip install -r requirements.txt          # numpy, scikit-learn, torch (CPU is en
 python -m crashdamage simulate examples/side_pole_29kmh.json    # physics layer: prints the damage report
 python -m crashdamage generate --n 8000                         # labelled dataset -> data/synthetic.npz
 python -m crashdamage train --model gnn --physics-features      # trains, prints test scores, saves models/gnn.pt
-python -m crashdamage benchmark                                 # every model on every split (about 45 minutes on 2 CPU cores)
+python -m crashdamage benchmark                                 # every model on every split (about an hour on 2 CPU cores)
 python -m crashdamage serve --model models/gnn_demo.pt          # server for Unity on 127.0.0.1:8765
-pytest                                                          # 47 tests
+python -m http.server -d docs 8000                              # the website, at http://localhost:8000
+pytest                                                          # 68 tests
 ```
 
 `pip install -e .` also gives you a `crashdamage` command. Tested with Python 3.13 (numpy 2.5, scikit-learn 1.9,
@@ -67,6 +73,33 @@ on the random split of the 8000 synthetic scenarios (5600 for training, 1200 for
 epoch 48). On the 1200 held-out test scenarios its damage error is 0.0325 on average, the damage level is right in
 86% of the cases (99% within one level), detaching parts is predicted with F1 0.95, and the average errors are
 0.065 m for crush depth and 0.047 m for cabin intrusion.
+
+## Website
+
+[`docs/`](docs) holds a static page that does what `python -m crashdamage simulate` does, in the browser. It is
+published with GitHub Pages (branch `main`, folder `/docs`) at
+<https://vicky123411.github.io/crashsense-ai-damage-prediction/>.
+
+You choose the car (mass, steel grades), the obstacle, the speed and where the car is hit. The page draws the car
+from above and from the side with every part coloured by its damage, lists the effects a game should show, and gives
+crush depth, cabin intrusion, peak force, speed change and where the energy goes. A switch picks the demo model, the
+physics layer, or both side by side, and the page warns when an input is outside the range the model was trained on.
+"Copy link to this crash" makes a link that opens the same crash; the request and report buttons copy the same JSON
+as the Unity bridge.
+
+There is no server and no build step. The physics layer and the demo network are written again in JavaScript
+(`docs/js/`); the weights and tables are in `docs/data/`.
+
+```bash
+python -m http.server -d docs 8000        # then open http://localhost:8000
+python scripts/export_web_data.py --model models/gnn_demo.pt --metrics results/demo_model_metrics.txt   # after retraining
+node tests/web/check_parity.mjs           # JavaScript against Python on 55 cases
+```
+
+The parity check compares the physics layer to 1e-9 and the network to 2e-4. A run on 1,515 cases (made with
+`scripts/make_web_parity.py --n 1500`) had no failures. The browser tests in `tests/test_web_site.py` open the page
+with Playwright (`pip install playwright && playwright install chromium`) and compare what it shows with the Python
+code; they are skipped when Playwright is not installed.
 
 ## Example
 
@@ -97,7 +130,7 @@ The demo model answers the same scenario in the same range
 
 | | physics layer | demo model |
 |---|---:|---:|
-| crush depth (m) | 0.64 | 0.71 |
+| crush depth (m) | 0.64 | 0.70 |
 | cabin intrusion (m) | 0.28 | 0.29 |
 | peak force (kN) | 115 | 125 |
 | door_l damage | 1.00, torn off | 1.00, torn off |
@@ -140,34 +173,44 @@ presets, all four sides, random offset, angle and speed (4 to 36 m/s). Neural mo
 most 40 epochs, early stopping on a validation set; the table shows mean ± standard deviation on the test rows.
 Four ways of splitting the data:
 
-* **random**: ordinary 70/15/15 split
-* **speed**: trained below 24 m/s (86 km/h), tested above it
-* **obstacle**: the `steel_crate` obstacle never appears in training
-* **face**: the rear of the car is never hit in training
+* **random**: ordinary 70/15/15 split (1,200 test crashes)
+* **speed**: trained below 24 m/s (86 km/h), tested above it (2,967 test crashes)
+* **obstacle**: the `steel_crate` obstacle never appears in training (1,034 test crashes)
+* **face**: the rear of the car is never hit in training (820 test crashes)
+
+The first row of the first table is the error of answering "no damage" for every part, which gives the other
+numbers a scale.
 
 **Damage MAE (mean absolute error of the 0-1 damage value, lower is better)**
 
-| model | random | speed |
-|---|---:|---:|
-| naive_energy | 0.2699 | 0.3091 |
-| gbm | 0.0646 | 0.0796 |
-| mlp | 0.0649 ± 0.0007 | 0.1052 ± 0.0024 |
-| node_mlp | 0.0548 ± 0.0006 | 0.0735 ± 0.0005 |
-| gnn | 0.0353 ± 0.0004 | 0.0529 ± 0.0006 |
-| gnn_phys | 0.0337 ± 0.0001 | 0.0524 ± 0.0004 |
-| gnn_phys_energy | 0.0360 ± 0.0004 | 0.0542 ± 0.0015 |
+| model | random | speed | obstacle | face |
+|---|---:|---:|---:|---:|
+| *no damage anywhere (reference)* | 0.2775 | 0.3339 | 0.2592 | 0.2448 |
+| naive_energy | 0.2699 | 0.3091 | 0.2070 | 0.3053 |
+| gbm | 0.0646 | 0.0796 | 0.0991 | 0.1102 |
+| mlp | 0.0649 ± 0.0007 | 0.1052 ± 0.0024 | 0.0881 ± 0.0052 | 0.2100 ± 0.0072 |
+| node_mlp | 0.0548 ± 0.0006 | 0.0735 ± 0.0005 | 0.0916 ± 0.0135 | 0.0964 ± 0.0018 |
+| gnn | 0.0353 ± 0.0004 | 0.0529 ± 0.0006 | 0.0583 ± 0.0044 | 0.1090 ± 0.0032 |
+| gnn_phys | 0.0337 ± 0.0001 | 0.0524 ± 0.0004 | 0.0586 ± 0.0119 | 0.1135 ± 0.0128 |
+| gnn_phys_energy | 0.0360 ± 0.0004 | 0.0542 ± 0.0015 | 0.0619 ± 0.0202 | 0.1105 ± 0.0141 |
 
 **Damage level macro-F1 (five levels, higher is better)**
 
-| model | random | speed |
-|---|---:|---:|
-| naive_energy | 0.275 | 0.239 |
-| gbm | 0.672 | 0.631 |
-| mlp | 0.682 ± 0.002 | 0.583 ± 0.006 |
-| node_mlp | 0.729 ± 0.003 | 0.668 ± 0.006 |
-| gnn | 0.820 ± 0.001 | 0.764 ± 0.003 |
-| gnn_phys | 0.827 ± 0.001 | 0.761 ± 0.010 |
-| gnn_phys_energy | 0.813 ± 0.001 | 0.757 ± 0.008 |
+| model | random | speed | obstacle | face |
+|---|---:|---:|---:|---:|
+| naive_energy | 0.275 | 0.239 | 0.275 | 0.252 |
+| gbm | 0.672 | 0.631 | 0.581 | 0.449 |
+| mlp | 0.682 ± 0.002 | 0.583 ± 0.006 | 0.616 ± 0.007 | 0.287 ± 0.020 |
+| node_mlp | 0.729 ± 0.003 | 0.668 ± 0.006 | 0.576 ± 0.082 | 0.523 ± 0.016 |
+| gnn | 0.820 ± 0.001 | 0.764 ± 0.003 | 0.741 ± 0.016 | 0.454 ± 0.022 |
+| gnn_phys | 0.827 ± 0.001 | 0.761 ± 0.010 | 0.712 ± 0.063 | 0.440 ± 0.047 |
+| gnn_phys_energy | 0.813 ± 0.001 | 0.757 ± 0.008 | 0.706 ± 0.099 | 0.458 ± 0.056 |
+
+![Damage error and level macro-F1 of every model on the four splits](results/benchmark.png)
+
+More scores (R², detaching parts, crush depth, damage of the obstacle, through-car flag) are in
+[`results/benchmark.md`](results/benchmark.md); the numbers of every seed are in
+[`results/benchmark_raw.json`](results/benchmark_raw.json).
 
 The variants: `naive_energy` shares the impact energy over the loaded parts by capacity and learns nothing; `gbm`
 is gradient boosting; `mlp` sees the whole scenario as one flat vector; `node_mlp` is a per-part network without
@@ -175,17 +218,52 @@ message passing; `gnn` passes messages along the part graph; `gnn_phys` also get
 of the physics layer as inputs, and `gnn_phys_energy` adds a loss term that penalises damage totals the energy
 cannot pay for. `naive_energy` and `gbm` were run once, the neural models three times.
 
-What the first two splits show (the `obstacle` and `face` splits are still being run and will be added here):
+What the four splits show:
 
-* On the random split the graph network roughly halves the damage error of the flat MLP and of gradient boosting
+* **Random split.** The graph network nearly halves the damage error of the flat MLP and of gradient boosting
   (0.035 against 0.065), and its macro-F1 over the five damage levels is 0.82 against 0.67 to 0.68.
-* Asking for speeds above the training range makes every learned model worse, and the flat MLP worst of all
-  (0.105). The graph network is still the best (0.053), so the part graph also helps with extrapolation.
-* Giving the graph network the energy and capacity numbers of the physics layer (`gnn_phys`) helps a little on the
-  random split (0.034 against 0.035) and not visibly on the speed split. The energy-consistency loss
-  (`gnn_phys_energy`) did not help; it is slightly worse than `gnn_phys` on both.
-* The no-learning baseline (`naive_energy`) is worse than always predicting the average damage (R² below zero), so
-  the learned models do pick up more than a simple energy share.
+* **Speed split** (tested on crashes faster than anything in training). Every learned model gets worse, the flat MLP
+  most (0.065 to 0.105). The graph networks are still the best (0.052 to 0.054), so the part graph also helps a
+  little beyond the training range.
+* **Obstacle split** (the steel crate is never seen). The graph networks are again ahead on damage (0.058 to 0.062
+  against 0.088 to 0.099), but their results differ a lot between seeds (± 0.004 to ± 0.020), so the order among the
+  three graph variants means nothing. Every learned model predicts the damage of the unseen obstacle itself badly
+  (error 0.29 to 0.38, against 0.06 to 0.11 on the random split): a new kind of obstacle needs examples in the
+  training data.
+* **Face split** (the rear is never hit in training). This is the hardest test, and the only one where the graph
+  networks do not win. The per-part network is best (0.096), the graph networks and gradient boosting are close
+  behind (about 0.11), and the flat MLP is hardly better than saying "no damage" (0.210 against 0.245). Hits from a
+  side that was never in the training data are not handled well by any model. The demo model was trained on all four
+  sides.
+* **Inputs from the physics layer.** Giving the graph network the energy and capacity numbers of the physics layer
+  (`gnn_phys`) helps a little on the random split (0.034 against 0.035) and makes no visible difference on the other
+  three, where the gaps are inside the spread between seeds. These numbers are computed by the physics layer
+  itself, so this variant is the least independent of the labels. The demo model and the website use it. The
+  energy-consistency loss (`gnn_phys_energy`) gave no consistent gain.
+* **No-learning baseline.** `naive_energy` beats "no damage" by 3% to 20% on three splits (0.270 against 0.278 on
+  the random split, 0.207 against 0.259 on the obstacle split) and loses to it on the face split (0.305 against
+  0.245). Its R² is below zero on three of the four splits.
+* **Spread.** Three seeds are few. Treat differences inside the ± range as ties.
+* **A fixed bug.** The first run of the face split gave nonsense for the neural models (mostly all 0 or all 1),
+  because the input scaling divided a column that never changes in training, the one-hot of the rear face, by about
+  1e-6. That is fixed (commit "Leave constant columns unscaled in the input normaliser") and the face split was run
+  again. The other three splits have no such column, so their numbers did not change.
+
+### Speed
+
+`python scripts/time_inference.py` times both engines on 1000 random scenarios (CPU only, 2 cores; the output is in
+[`results/speed.txt`](results/speed.txt)):
+
+| | per scenario |
+|---|---:|
+| physics layer, one request at a time | 0.44 ms |
+| demo model, one request at a time | 1.27 ms |
+| demo model, a whole batch at once | 0.18 ms for the inputs + 0.11 ms for the network |
+
+For a single request the model is slower than the physics layer, not faster: one request includes building the
+inputs, one PyTorch call and writing the report, and even in a batch the inputs cost more than the network. With one
+PyTorch thread the network step takes 0.18 ms instead of 0.11 ms. A learned model only pays off when its labels come
+from a solver that is much slower than the physics layer, which this repository has not done (see `external.py`).
 
 ## Repository layout
 
@@ -208,10 +286,10 @@ crashdamage/
   cli.py         python -m crashdamage ...
 unity/           C# scripts and set-up notes
 examples/        scenario files
-docs/method.md   everything the code assumes
-scripts/         example table, result table and plot, timing
-results/         benchmark output
-tests/           pytest
+docs/            the website (index.html, css/, js/, data/) and method.md, which lists everything the code assumes
+scripts/         example table, result table and plot, timing, export of the website data, parity cases
+results/         benchmark tables, chart and raw numbers, timing, scores of the demo model
+tests/           pytest; tests/web/ has the JavaScript parity check
 ```
 
 ## Limitations
@@ -228,6 +306,11 @@ tests/           pytest
 * **Narrow hard objects go through the car.** In 11% of the generated scenarios the obstacle passes through
   the whole car in the model (the steel edge in 53% of its scenarios, the steel pole in 17%). The report then
   says `went_through_car` and gives the unabsorbed energy; read the damage as "destroyed along the line of the hit".
+* **Narrow objects damage whole parts.** The damage of a part is the share of the crush capacity of the strip that is
+  touched, so a narrow object that uses up its strip gives the whole part a damage of 1.0. A 21 cm wooden post hit
+  head-on at 12 km/h destroys the bumper, the bumper beam and the radiator, crushes the bonnet and gives a crush depth
+  of about 0.6 m, although only 1.7 kJ of the 7.2 kJ goes into the car. The demo model gives the same picture
+  (0.54 m), and the website calls both "Heavy damage", which is probably more than a real 12 km/h hit would do.
 * **Models inherit the physics layer's assumptions** and are only as good as that layer; the scores are agreement
   scores, not accuracy.
 * **The Unity scripts were never run in Unity.** They compile (C# 9) against stand-in Unity types, which only catches
@@ -239,6 +322,7 @@ tests/           pytest
 * Train on real solver data (OpenRadioss or LS-DYNA runs, or a public crash dataset) through `external.py`, and
   calibrate the constants against it.
 * More vehicle layouts, and car-to-car crashes where both bodies are deformable.
+* Make damage depend on how much of a part's width is touched, so that narrow objects stop damaging whole parts.
 * A mesh-level graph network for the shape of the dent, not only per-part damage.
 * Try the Unity scripts in the Ramp Run scene and tune the dent and effect parameters with artists.
 
