@@ -24,7 +24,7 @@ def cell(runs, key, digits=3):
     return f"{np.mean(vals):.{digits}f} ± {np.std(vals):.{digits}f}"
 
 
-for key, title, digits in [("damage_mae", "Damage MAE (mean absolute error of the 0-1 damage value, lower is better)", 3),
+for key, title, digits in [("damage_mae", "Damage MAE (mean absolute error of the 0-1 damage value, lower is better)", 4),
                            ("level_macro_f1", "Damage level macro-F1 (five levels, higher is better)", 3)]:
     print(f"**{title}**\n")
     print("| model | " + " | ".join(splits) + " |")
