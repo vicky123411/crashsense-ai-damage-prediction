@@ -1,7 +1,8 @@
 """Write the test cases that tests/web/check_parity.mjs uses to check the JavaScript copy of the engine.
 
     python scripts/make_web_parity.py                     # tests/web/parity_cases.json (small, committed)
-    python scripts/make_web_parity.py --n 3000 --out /tmp/big.json --seed 5     # bigger local check
+    python scripts/make_web_parity.py --n 1500 --out big.json --seed 5     # bigger local check (1,515 cases)
+    node tests/web/check_parity.mjs big.json
 
 Every case has a request (the JSON a game engine would send) and what the Python code gives for it: the physics
 layer result, the contact geometry, the model inputs and the model outputs.

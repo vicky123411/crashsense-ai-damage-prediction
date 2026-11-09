@@ -1,7 +1,8 @@
 """The website runs a JavaScript copy of the physics layer and of the neural network.
 
-This test runs the Node script that compares that copy with the Python code on about 1,500 cases
-(tests/web/check_parity.mjs). It is skipped when Node.js is not installed.
+This test runs the Node script (tests/web/check_parity.mjs) that compares that copy with the Python code on the
+55 cases in tests/web/parity_cases.json. For a bigger check make a set with scripts/make_web_parity.py --n 1500
+--out big.json and pass it to the script. The test is skipped when Node.js is not installed.
 """
 import os
 import shutil

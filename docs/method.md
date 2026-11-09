@@ -333,6 +333,11 @@ different vehicle needs its own part list.
   as the engine, so treat it as a rough indicator.
 * Narrow hard obstacles (the steel edge and the steel pole) often pass through the whole car in the model. The
   report then sets `went_through_car` and gives the unabsorbed energy.
+* The capacity C_i of a loaded part includes its overlap, so it is the capacity of the strip that the obstacle
+  touches, and d = E_part / C_i says how much of that strip is used up. A narrow obstacle that uses up its strip
+  gives the whole part a damage of 1. A 21 cm wooden post hit head-on at 12 km/h destroys the bumper, the beam and
+  the radiator and crushes the bonnet in the model (crush depth about 0.6 m, 1.7 kJ of the 7.2 kJ absorbed by the
+  car), which is probably more than a real hit at that speed would do.
 * The level thresholds, airbag triggers and effect rules are assumptions for visual purposes.
 * No occupants, no fire, no fracture modelling inside parts.
 * Nothing here has been compared with crash-test data.
