@@ -1,0 +1,14 @@
+{
+  "_comment": "Left side against a steel pole at 29 km/h, in the middle of the door.",
+  "speed_kmh": 29,
+  "face": "left",
+  "offset": 0.0,
+  "angle_deg": 0,
+  "vehicle": {
+    "mass_kg": 1300
+  },
+  "obstacle": {
+    "name": "steel_pole",
+    "width": 0.25
+  }
+}

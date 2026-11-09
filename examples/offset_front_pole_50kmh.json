@@ -1,0 +1,14 @@
+{
+  "_comment": "Front hit on a pole, 60 percent of the way toward the car's left edge.",
+  "speed_kmh": 50,
+  "face": "front",
+  "offset": 0.6,
+  "angle_deg": 10,
+  "vehicle": {
+    "mass_kg": 1100
+  },
+  "obstacle": {
+    "name": "steel_pole",
+    "width": 0.3
+  }
+}

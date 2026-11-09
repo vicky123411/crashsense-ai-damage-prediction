@@ -1,0 +1,11 @@
+{
+  "_comment": "A 1500 kg concrete block that can be pushed, so less energy goes into deformation.",
+  "speed_kmh": 40,
+  "face": "front",
+  "offset": 0.0,
+  "angle_deg": 0,
+  "obstacle": {
+    "name": "concrete_block",
+    "mass_kg": 1500
+  }
+}

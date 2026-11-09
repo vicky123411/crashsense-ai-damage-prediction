@@ -1,0 +1,13 @@
+{
+  "_comment": "Full-width frontal hit on a concrete wall at 56 km/h.",
+  "speed_kmh": 56,
+  "face": "front",
+  "offset": 0.0,
+  "angle_deg": 0,
+  "vehicle": {
+    "mass_kg": 1100
+  },
+  "obstacle": {
+    "name": "concrete_wall"
+  }
+}

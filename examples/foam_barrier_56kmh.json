@@ -1,0 +1,10 @@
+{
+  "_comment": "Foam barrier at 56 km/h: the barrier is crushed and shares the energy with the car. Compare with front_wall_56kmh.json.",
+  "speed_kmh": 56,
+  "face": "front",
+  "offset": 0.0,
+  "angle_deg": 0,
+  "obstacle": {
+    "name": "foam_barrier"
+  }
+}

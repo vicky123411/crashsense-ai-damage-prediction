@@ -1,0 +1,10 @@
+{
+  "_comment": "A wooden fence snaps; the car loses almost no energy.",
+  "speed_kmh": 50,
+  "face": "front",
+  "offset": 0.0,
+  "angle_deg": 0,
+  "obstacle": {
+    "name": "wood_fence"
+  }
+}
