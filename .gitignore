@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# generated data (re-create with: python -m crashdamage generate)
+data/
+*.npz
+
+# trained models, except the small demo model that ships with the repo
+models/*
+!models/gnn_demo.pt
+
+# Unity
+unity/Library/
+unity/Temp/
+unity/Logs/
+unity/obj/
+unity/UserSettings/
+*.csproj
+*.sln

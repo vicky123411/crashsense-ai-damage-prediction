@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crashdamage"
+version = "0.1.0"
+description = "Damage prediction for vehicle-obstacle collisions: a simple physics layer, learned surrogates and a Unity bridge"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Vikash" }]
+dependencies = ["numpy>=1.24", "scikit-learn>=1.4", "torch>=2.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "matplotlib"]
+
+[project.scripts]
+crashdamage = "crashdamage.cli:main"
+
+[tool.setuptools]
+packages = ["crashdamage"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
