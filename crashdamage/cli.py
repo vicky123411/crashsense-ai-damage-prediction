@@ -49,10 +49,14 @@ def cmd_benchmark(args):
     splits = args.splits.split(",") if args.splits else evaluate.SPLITS
     os.makedirs(args.out, exist_ok=True)
     raw = os.path.join(args.out, "benchmark_raw.json")
+    prior = None
+    if args.keep_existing and os.path.exists(raw):
+        with open(raw) as f:
+            prior = json.load(f)
     results = evaluate.run_benchmark(data, variants, splits, seeds=tuple(range(args.seeds)), epochs=args.epochs,
-                                     out_path=raw)
+                                     out_path=raw, prior=prior)
     lines = [f"# Benchmark ({len(data['speed'])} scenarios, {args.seeds} seeds, {args.epochs} epochs max)", ""]
-    for sk in splits:
+    for sk in [s for s in evaluate.SPLITS if s in results]:
         lines += [f"## split: {sk}", "", evaluate.markdown_table(results, sk), ""]
     path = os.path.join(args.out, "benchmark.md")
     with open(path, "w") as f:
@@ -115,6 +119,8 @@ def main(argv=None):
     b.add_argument("--epochs", type=int, default=40)
     b.add_argument("--models", default="", help="comma separated, default all")
     b.add_argument("--splits", default="", help="comma separated, default all")
+    b.add_argument("--keep-existing", action="store_true",
+                   help="keep the splits that are already in OUT/benchmark_raw.json and replace only the ones run now")
     b.add_argument("--out", default="results")
     b.set_defaults(fn=cmd_benchmark)
 

@@ -49,9 +49,11 @@ def run_one(data, split, variant, seed, epochs):
     return evaluate_predictions(data, test, pred)
 
 
-def run_benchmark(data, variants, splits=SPLITS, seeds=(0, 1, 2), epochs=40, out_path=None, log=print):
-    """results[split][variant] = list of metric dicts, one per seed."""
-    results = {}
+def run_benchmark(data, variants, splits=SPLITS, seeds=(0, 1, 2), epochs=40, out_path=None, log=print, prior=None):
+    """results[split][variant] = list of metric dicts, one per seed.
+
+    ``prior`` is an earlier results dict; the splits that are run now replace their entry, the others are kept."""
+    results = dict(prior or {})
     t0 = time.time()
     for sk in splits:
         results[sk] = {}
