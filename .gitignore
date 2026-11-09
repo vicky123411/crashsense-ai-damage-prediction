@@ -6,7 +6,7 @@ __pycache__/
 venv/
 
 # generated data (re-create with: python -m crashdamage generate)
-data/
+/data/
 *.npz
 
 # trained models, except the small demo model that ships with the repo

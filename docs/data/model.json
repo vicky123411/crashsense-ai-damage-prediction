@@ -1,0 +1,395 @@
+{
+ "config": {
+  "kind": "gnn",
+  "hidden": 96,
+  "layers": 3,
+  "dropout": 0.0,
+  "epochs": 60,
+  "batch_size": 128,
+  "lr": 0.002,
+  "weight_decay": 1e-05,
+  "patience": 12,
+  "physics_features": true,
+  "energy_loss": 0.0,
+  "detach_pos_weight": 4.0,
+  "node_weight": 5.0,
+  "seed": 0
+ },
+ "n_node_feat": 31,
+ "n_glob_feat": 39,
+ "tensors": [
+  {
+   "name": "adj",
+   "shape": [
+    28,
+    28
+   ],
+   "offset": 0
+  },
+  {
+   "name": "node_in.0.weight",
+   "shape": [
+    96,
+    31
+   ],
+   "offset": 3136
+  },
+  {
+   "name": "node_in.0.bias",
+   "shape": [
+    96
+   ],
+   "offset": 15040
+  },
+  {
+   "name": "node_in.2.weight",
+   "shape": [
+    96,
+    96
+   ],
+   "offset": 15424
+  },
+  {
+   "name": "node_in.2.bias",
+   "shape": [
+    96
+   ],
+   "offset": 52288
+  },
+  {
+   "name": "glob_in.0.weight",
+   "shape": [
+    96,
+    39
+   ],
+   "offset": 52672
+  },
+  {
+   "name": "glob_in.0.bias",
+   "shape": [
+    96
+   ],
+   "offset": 67648
+  },
+  {
+   "name": "glob_in.2.weight",
+   "shape": [
+    96,
+    96
+   ],
+   "offset": 68032
+  },
+  {
+   "name": "glob_in.2.bias",
+   "shape": [
+    96
+   ],
+   "offset": 104896
+  },
+  {
+   "name": "msg.0.weight",
+   "shape": [
+    96,
+    96
+   ],
+   "offset": 105280
+  },
+  {
+   "name": "msg.0.bias",
+   "shape": [
+    96
+   ],
+   "offset": 142144
+  },
+  {
+   "name": "msg.1.weight",
+   "shape": [
+    96,
+    96
+   ],
+   "offset": 142528
+  },
+  {
+   "name": "msg.1.bias",
+   "shape": [
+    96
+   ],
+   "offset": 179392
+  },
+  {
+   "name": "msg.2.weight",
+   "shape": [
+    96,
+    96
+   ],
+   "offset": 179776
+  },
+  {
+   "name": "msg.2.bias",
+   "shape": [
+    96
+   ],
+   "offset": 216640
+  },
+  {
+   "name": "upd.0.0.weight",
+   "shape": [
+    96,
+    288
+   ],
+   "offset": 217024
+  },
+  {
+   "name": "upd.0.0.bias",
+   "shape": [
+    96
+   ],
+   "offset": 327616
+  },
+  {
+   "name": "upd.0.2.weight",
+   "shape": [
+    96,
+    96
+   ],
+   "offset": 328000
+  },
+  {
+   "name": "upd.0.2.bias",
+   "shape": [
+    96
+   ],
+   "offset": 364864
+  },
+  {
+   "name": "upd.1.0.weight",
+   "shape": [
+    96,
+    288
+   ],
+   "offset": 365248
+  },
+  {
+   "name": "upd.1.0.bias",
+   "shape": [
+    96
+   ],
+   "offset": 475840
+  },
+  {
+   "name": "upd.1.2.weight",
+   "shape": [
+    96,
+    96
+   ],
+   "offset": 476224
+  },
+  {
+   "name": "upd.1.2.bias",
+   "shape": [
+    96
+   ],
+   "offset": 513088
+  },
+  {
+   "name": "upd.2.0.weight",
+   "shape": [
+    96,
+    288
+   ],
+   "offset": 513472
+  },
+  {
+   "name": "upd.2.0.bias",
+   "shape": [
+    96
+   ],
+   "offset": 624064
+  },
+  {
+   "name": "upd.2.2.weight",
+   "shape": [
+    96,
+    96
+   ],
+   "offset": 624448
+  },
+  {
+   "name": "upd.2.2.bias",
+   "shape": [
+    96
+   ],
+   "offset": 661312
+  },
+  {
+   "name": "norm.0.weight",
+   "shape": [
+    96
+   ],
+   "offset": 661696
+  },
+  {
+   "name": "norm.0.bias",
+   "shape": [
+    96
+   ],
+   "offset": 662080
+  },
+  {
+   "name": "norm.1.weight",
+   "shape": [
+    96
+   ],
+   "offset": 662464
+  },
+  {
+   "name": "norm.1.bias",
+   "shape": [
+    96
+   ],
+   "offset": 662848
+  },
+  {
+   "name": "norm.2.weight",
+   "shape": [
+    96
+   ],
+   "offset": 663232
+  },
+  {
+   "name": "norm.2.bias",
+   "shape": [
+    96
+   ],
+   "offset": 663616
+  },
+  {
+   "name": "node_out.0.weight",
+   "shape": [
+    96,
+    192
+   ],
+   "offset": 664000
+  },
+  {
+   "name": "node_out.0.bias",
+   "shape": [
+    96
+   ],
+   "offset": 737728
+  },
+  {
+   "name": "node_out.2.weight",
+   "shape": [
+    2,
+    96
+   ],
+   "offset": 738112
+  },
+  {
+   "name": "node_out.2.bias",
+   "shape": [
+    2
+   ],
+   "offset": 738880
+  },
+  {
+   "name": "glob_out.0.weight",
+   "shape": [
+    96,
+    288
+   ],
+   "offset": 738888
+  },
+  {
+   "name": "glob_out.0.bias",
+   "shape": [
+    96
+   ],
+   "offset": 849480
+  },
+  {
+   "name": "glob_out.2.weight",
+   "shape": [
+    7,
+    96
+   ],
+   "offset": 849864
+  },
+  {
+   "name": "glob_out.2.bias",
+   "shape": [
+    7
+   ],
+   "offset": 852552
+  },
+  {
+   "name": "norm.node_mean",
+   "shape": [
+    31
+   ],
+   "offset": 852580
+  },
+  {
+   "name": "norm.node_std",
+   "shape": [
+    31
+   ],
+   "offset": 852704
+  },
+  {
+   "name": "norm.glob_mean",
+   "shape": [
+    39
+   ],
+   "offset": 852828
+  },
+  {
+   "name": "norm.glob_std",
+   "shape": [
+    39
+   ],
+   "offset": 852984
+  },
+  {
+   "name": "reg_mean",
+   "shape": [
+    4
+   ],
+   "offset": 853140
+  },
+  {
+   "name": "reg_std",
+   "shape": [
+    4
+   ],
+   "offset": 853156
+  }
+ ],
+ "bytes": 853172,
+ "metrics": {
+  "damage_mae": 0.0325,
+  "damage_rmse": 0.0734,
+  "damage_r2": 0.9596,
+  "damage_mae_loaded": 0.0343,
+  "damage_mae_unloaded": 0.0306,
+  "level_acc": 0.8613,
+  "level_within_one": 0.9918,
+  "level_macro_f1": 0.8329,
+  "detach_precision": 0.9235,
+  "detach_recall": 0.9789,
+  "detach_f1": 0.9504,
+  "crush_depth_m_mae": 0.0646,
+  "intrusion_m_mae": 0.0465,
+  "peak_force_mn_mae": 0.0851,
+  "obstacle_damage_mae": 0.0544,
+  "obstacle_level_acc": 0.8533,
+  "airbag_front_acc": 0.9883,
+  "airbag_front_f1": 0.9839,
+  "airbag_side_acc": 0.9933,
+  "airbag_side_f1": 0.9916,
+  "through_acc": 0.9925,
+  "through_f1": 0.968
+ },
+ "note": "Graph network trained on 8000 random scenarios labelled by the physics layer."
+}

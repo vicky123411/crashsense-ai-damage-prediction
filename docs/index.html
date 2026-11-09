@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CrashSense AI: crash damage predictor</title>
+<meta name="description" content="Choose the speed, the hit position, the obstacle and the car. See which parts are crushed or torn off, how deep the damage goes and which effects a game should show. Runs in your browser.">
+<meta property="og:title" content="CrashSense AI: crash damage predictor">
+<meta property="og:description" content="Set up a crash and see which parts of the car are damaged. An AI model and a physics layer, running in your browser.">
+<meta property="og:type" content="website">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-condensed-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#inputs">Skip to the inputs</a>
+
+<header class="topbar">
+  <div class="wrap bar">
+    <p class="brand">
+      <svg class="mark" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#fff"/><path d="M12 12V2a10 10 0 0 1 10 10z" fill="#16222E"/><path d="M12 12h10a10 10 0 0 1-10 10z" fill="#FFC400"/><path d="M12 12v10A10 10 0 0 1 2 12z" fill="#16222E"/><path d="M12 12H2A10 10 0 0 1 12 2z" fill="#FFC400"/><circle cx="12" cy="12" r="10" fill="none" stroke="#16222E" stroke-width="1.2"/></svg>
+      CrashSense AI
+    </p>
+    <nav aria-label="Project links">
+      <a href="https://github.com/vicky123411/crashsense-ai-damage-prediction/blob/main/docs/method.md">Method</a>
+      <a href="https://github.com/vicky123411/crashsense-ai-damage-prediction">Source on GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="intro">
+    <div>
+      <h1>Set up a crash, see the damage</h1>
+      <p>Choose the speed, where the car is hit, what it hits and what the car is made of. See which parts are crushed or torn off and which effects a game should show. Everything runs in your browser.</p>
+    </div>
+    <aside class="scope" aria-label="What this is">
+      <strong>Please read first.</strong>
+      No real crash data was used. The AI model learned from 8,000 crashes simulated by a small physics layer, and that layer was never compared with crash tests. The result sketches how a crash could look. It is not a safety rating.
+    </aside>
+  </div>
+
+  <section class="examples" aria-labelledby="ex-title">
+    <h2 id="ex-title" class="label">Examples</h2>
+    <ul id="examples-list" class="chips"></ul>
+  </section>
+
+  <p id="boot" class="boot" role="status">Loading the car and the AI model&hellip;</p>
+  <noscript><p class="boot">This page needs JavaScript to run the model.</p></noscript>
+
+  <div class="work">
+    <form id="inputs" class="sheet inputs" aria-label="Crash set-up" onsubmit="return false"></form>
+
+    <section id="results" class="sheet results" aria-label="Result">
+      <div class="verdict">
+        <div class="v-head">
+          <div>
+            <p class="label">How wrecked it looks</p>
+            <h2 id="v-word">&nbsp;</h2>
+          </div>
+          <div id="engine-switch" class="segmented engine" role="radiogroup" aria-label="Which engine answers">
+            <span class="seg"><input type="radio" name="engine" id="eng-model" value="model" checked><label for="eng-model"><i class="dot m"></i>AI model</label></span>
+            <span class="seg"><input type="radio" name="engine" id="eng-physics" value="physics"><label for="eng-physics"><i class="dot p"></i>Physics layer</label></span>
+            <span class="seg"><input type="radio" name="engine" id="eng-compare" value="compare"><label for="eng-compare">Compare</label></span>
+          </div>
+        </div>
+        <div id="v-scale" class="vscale" aria-hidden="true"></div>
+        <p id="summary" class="summary"></p>
+        <p id="v-diff" class="diff" hidden></p>
+        <details class="rule"><summary>How is this decided?</summary>
+          <p>This is a rule about how the damaged car <em>looks</em>, not a safety rating. Here: <span id="v-rule"></span> The five steps are barely touched, light, moderate, heavy and wrecked.</p>
+        </details>
+        <p id="live" class="sr-only" aria-live="polite"></p>
+      </div>
+
+      <p id="no-model" class="notice" hidden>The AI model could not be loaded, so only the physics layer is available.</p>
+      <p id="problem" class="notice problem" role="alert" hidden></p>
+      <p id="notice" class="notice" hidden>The AI model has not seen inputs like these: <span id="notice-list"></span>. Its numbers may be unreliable here. The physics layer has no such limit.</p>
+
+      <figure class="stage">
+        <svg id="scene" class="scene" focusable="false"></svg>
+        <div id="draw-switch" class="drawsw" hidden>
+          <span>The drawing shows</span>
+          <span class="segmented small" role="radiogroup" aria-label="Which engine the drawing shows">
+            <span class="seg"><input type="radio" name="draw" id="draw-model" value="model"><label for="draw-model"><i class="dot m"></i>AI model</label></span>
+            <span class="seg"><input type="radio" name="draw" id="draw-physics" value="physics"><label for="draw-physics"><i class="dot p"></i>Physics layer</label></span>
+          </span>
+        </div>
+        <figcaption>
+          <ul id="legend" class="legend"></ul>
+          <p class="legend-note">Part with a dashed white and black outline: it tears off and is drawn pushed away. Yellow bar: where the obstacle touches the car. Target: point of impact. Dotted line: start of the passenger cell. Dashed grey outline: the car's outline.</p>
+        </figcaption>
+      </figure>
+
+      <div class="readouts">
+        <div class="ro" data-ro="crush_depth"><div class="v">0<span class="u">m</span></div><div class="l">Crush depth</div><div class="c">How far the car is squashed in</div><div class="o" hidden></div></div>
+        <div class="ro" data-ro="intrusion"><div class="v">0<span class="u">m</span></div><div class="l">Into the passenger cell</div><div class="c">Crush beyond the cabin line</div><div class="o" hidden></div></div>
+        <div class="ro" data-ro="peak_force_kn"><div class="v">0<span class="u">kN</span></div><div class="l">Peak force</div><div class="c">Largest push between car and obstacle</div><div class="o" hidden></div></div>
+        <div class="ro" data-ro="delta_v"><div class="v">0<span class="u">km/h</span></div><div class="l">Speed change</div><div class="c">How much speed the car loses</div><div class="o" hidden></div></div>
+        <div class="ro" data-ro="e_diss_kj"><div class="v">0<span class="u">kJ</span></div><div class="l">Crash energy</div><div class="c">Energy that has to go into damage</div><div class="o" hidden></div></div>
+        <div class="ro" data-ro="split"><div class="v">0<span class="u">kJ</span></div><div class="l">Where the energy goes</div><div class="c">Car / obstacle</div><div class="o" hidden></div></div>
+      </div>
+
+      <div class="duo">
+        <section aria-labelledby="fx-title">
+          <h3 id="fx-title">Effects for a game</h3>
+          <ul id="effects" class="chips fx-list"></ul>
+          <p id="fx-note" class="hint" hidden>A blue dot marks an effect the two engines disagree on.</p>
+        </section>
+        <section aria-labelledby="ob-title">
+          <h3 id="ob-title">The obstacle</h3>
+          <p class="ob-name" id="ob-name"></p>
+          <p id="ob-line"></p>
+        </section>
+      </div>
+    </section>
+
+    <section id="details" class="sheet details" aria-label="Parts and export">
+      <section class="parts" aria-labelledby="parts-title">
+        <h3 id="parts-title">Parts, most damaged first</h3>
+        <p class="hint">Point at a row, or tap it, to outline that part in the drawing.</p>
+        <p id="cmp-note" class="hint" hidden>Two bars and two levels per part: first the AI model (blue), then the physics layer (grey).</p>
+        <div class="table-wrap">
+          <table id="parts">
+            <thead><tr><th scope="col">Part</th><th scope="col">Damage, 0 to 1</th><th scope="col">Level</th><th scope="col">Notes</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button id="show-all" type="button" class="plain" aria-expanded="false">Show all parts</button>
+      </section>
+
+      <section class="export" aria-labelledby="exp-title">
+        <h3 id="exp-title">Use this result elsewhere</h3>
+        <p>The request and the report use the same JSON as the Unity bridge in the repository.</p>
+        <div class="btns">
+          <button id="copy-req" type="button" class="plain">Copy request JSON</button>
+          <button id="copy-rep" type="button" class="plain">Copy report JSON</button>
+          <button id="copy-link" type="button" class="plain">Copy link to this crash</button>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <section class="about" aria-labelledby="about-title">
+    <h2 id="about-title">How it works</h2>
+    <div class="cols">
+      <div>
+        <h3>The physics layer</h3>
+        <p>A simple energy model. The crash energy follows from the speed and the masses. The contact patch decides which of the car's 28 boxes are in the line of the hit, and each part crushes at a force set by its material, thickness and size. The weaker body, car or obstacle, gives way first. Damage then spreads to connected parts, such as door to pillar to windscreen.</p>
+      </div>
+      <div>
+        <h3>The AI model</h3>
+        <p>A graph neural network. It reads the same inputs and predicts the damage of every part in one pass. It was trained on 8,000 random crashes labelled by the physics layer. <span id="model-facts"></span></p>
+      </div>
+      <div>
+        <h3>What it is not</h3>
+        <p>Neither engine was compared with real crash tests, the constants are chosen for plausible sizes rather than fitted, and the car is a single compact layout. A narrow obstacle such as a post is the weakest case: every part it touches counts as heavily damaged, even when only a strip of that part is hit. Use it to explore ideas and to prepare effects for games, not to judge safety.</p>
+      </div>
+    </div>
+    <p class="more-links">
+      <a href="https://github.com/vicky123411/crashsense-ai-damage-prediction/blob/main/docs/method.md">Every assumption and constant</a>,
+      <a href="https://github.com/vicky123411/crashsense-ai-damage-prediction#results-on-synthetic-data">benchmark results</a> and
+      <a href="https://github.com/vicky123411/crashsense-ai-damage-prediction/tree/main/unity">the Unity scripts</a>
+      are in the repository.
+    </p>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>CrashSense AI is open source under the MIT licence. Fonts: Barlow and Barlow Condensed (SIL Open Font License).</p>
+  </div>
+</footer>
+
+<div id="mini" class="mini" hidden>
+  <p class="mini-text"><strong id="mini-word"></strong><span id="mini-sub"></span></p>
+  <button id="mini-btn" type="button" class="plain">See result</button>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
