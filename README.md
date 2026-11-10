@@ -194,6 +194,9 @@ numbers a scale.
 | gnn_phys | 0.0337 ± 0.0001 | 0.0524 ± 0.0004 | 0.0586 ± 0.0119 | 0.1135 ± 0.0128 |
 | gnn_phys_energy | 0.0360 ± 0.0004 | 0.0542 ± 0.0015 | 0.0619 ± 0.0202 | 0.1105 ± 0.0141 |
 
+The "no damage" value of the random split is for the split made with seed 0, the one `naive_energy` and `gbm` were
+run on; averaged over the three random splits it is 0.2754 (the paper uses that mean for the neural models).
+
 **Damage level macro-F1 (five levels, higher is better)**
 
 | model | random | speed | obstacle | face |
@@ -249,6 +252,51 @@ What the four splits show:
   1e-6. That is fixed (commit "Leave constant columns unscaled in the input normaliser") and the face split was run
   again. The other three splits have no such column, so their numbers did not change.
 
+### Ablations: depth, part graph, amount of training data
+
+`python scripts/ablations.py` (about an hour on 2 CPU cores, resumes if stopped) runs three more experiments with the
+same data, training settings and scores as the benchmark. Every run is one record in
+[`results/ablations.json`](results/ablations.json). Damage MAE, mean ± standard deviation over 3 seeds:
+
+| message-passing rounds | random | speed | obstacle |
+|---|---:|---:|---:|
+| 0 (`node_mlp`) | 0.0548 ± 0.0006 | 0.0735 ± 0.0005 | 0.0916 ± 0.0135 |
+| 1 | 0.0431 ± 0.0007 | 0.0628 ± 0.0003 | not run |
+| 2 | 0.0380 ± 0.0003 | 0.0563 ± 0.0011 | not run |
+| 3 (`gnn`) | 0.0353 ± 0.0004 | 0.0529 ± 0.0006 | 0.0583 ± 0.0044 |
+| 4 | 0.0338 ± 0.0000 | 0.0516 ± 0.0006 | not run |
+| 5 | 0.0327 ± 0.0003 | not run | not run |
+| 6 | 0.0328 ± 0.0007 | not run | not run |
+
+| graph used (3 rounds) | random | speed | obstacle |
+|---|---:|---:|---:|
+| real part graph (`gnn`) | 0.0353 ± 0.0004 | 0.0529 ± 0.0006 | 0.0583 ± 0.0044 |
+| complete graph (every part joined to every part) | 0.0400 ± 0.0002 | 0.0610 ± 0.0007 | 0.0647 ± 0.0032 |
+| shuffled edges (real weights, wrong neighbours) | 0.0417 ± 0.0006 | 0.0619 ± 0.0017 | 0.0686 ± 0.0034 |
+| no edges (same layers, parts never exchange messages) | 0.0440 ± 0.0005 | 0.0651 ± 0.0009 | 0.0724 ± 0.0037 |
+
+| training scenarios (random split) | 250 | 500 | 1,000 | 2,000 | 5,600 |
+|---|---:|---:|---:|---:|---:|
+| `gnn` | 0.0961 | 0.0792 | 0.0637 | 0.0509 | 0.0353 |
+| `node_mlp` | 0.1149 | 0.0991 | 0.0823 | 0.0700 | 0.0548 |
+| `gbm` | 0.0831 | 0.0764 | 0.0703 | 0.0678 | 0.0646 |
+
+* **About half of the gain of the graph network over the per-part network is depth, not the graph.** On the random
+  split the gain is 0.0195. The same network without edges already gets 0.0108 of it (55%) from its extra layers; the
+  other 0.0087 (45%) comes from letting parts exchange messages. On the speed split depth alone gives 41%, on the
+  obstacle split 58%.
+* **The real part graph still beats the other graphs.** On all three splits the order is real graph, complete graph,
+  shuffled edges, no edges. Part of this is by construction: the physics layer spreads damage along the same graph
+  when it makes the labels.
+* **More rounds help up to five** (random split: 0.0548, 0.0431, 0.0380, 0.0353, 0.0338, 0.0327 for 0 to 5 rounds,
+  0.0328 at six). Three rounds is a compromise, not an optimum.
+* **Little data.** With 250 or 500 training scenarios gradient boosting beats the graph network; from 1,000
+  scenarios on the graph network is better and keeps improving while boosting flattens.
+
+`python scripts/demo_diagnostics.py` re-scores `models/gnn_demo.pt` on the random test split and writes the error
+breakdown (by part kind, speed, obstacle, side, plus the level confusion matrix) to
+[`results/demo_diagnostics.json`](results/demo_diagnostics.json).
+
 ### Speed
 
 `python scripts/time_inference.py` times both engines on 1000 random scenarios (CPU only, 2 cores; the output is in
@@ -287,8 +335,8 @@ crashdamage/
 unity/           C# scripts and set-up notes
 examples/        scenario files
 docs/            the website (index.html, css/, js/, data/) and method.md, which lists everything the code assumes
-scripts/         example table, result table and plot, timing, export of the website data, parity cases
-results/         benchmark tables, chart and raw numbers, timing, scores of the demo model
+scripts/         example table, result table and plot, timing, ablations, demo-model diagnostics, export of the website data, parity cases
+results/         benchmark tables, chart and raw numbers, ablations, timing, scores and error breakdown of the demo model
 tests/           pytest; tests/web/ has the JavaScript parity check
 ```
 
