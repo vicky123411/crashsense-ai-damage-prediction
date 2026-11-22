@@ -1,0 +1,18 @@
+# NHTSA NCAP full-frontal rigid-barrier tests (about 56 km/h). Values read from the public test reports;
+# report = https://nrd-static.nhtsa.dot.gov/reports/vehdb/<folder>/<id>R001.pdf
+report_id,year,vehicle,speed_kmh,test_mass_kg,max_static_crush_mm,url
+v10576,2019,Nissan Versa S sedan,56.13,1261.0,379,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v10500/v10576R001.pdf
+v10688,2019,Kia Forte sedan,56.21,1455.0,421,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v10600/v10688R001.pdf
+v10387,2019,Honda Insight LX sedan,56.07,1530.0,437,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v10300/v10387R001.pdf
+v14258,2023,Acura Integra A-Spec hatchback,56.06,1573.5,470,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v14200/v14258R001.pdf
+v15046,2024,Kia Seltos SUV,56.55,1590.4,414,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v15000/v15046R001.pdf
+v14316,2023,Kia Niro EX Touring SUV,56.24,1634.5,623,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v14300/v14316R001.pdf
+v10555,2019,Toyota C-HR hatchback,56.71,1646.0,393,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v10500/v10555R001.pdf
+v15005,2023,Honda Accord LX sedan,56.24,1647.5,417,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v15000/v15005R001.pdf
+v14257,2022,Toyota Corolla Cross LE AWD SUV,56.32,1727.0,612,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v14200/v14257R001.pdf
+v10768,2019,Honda CR-V AWD LX,56.02,1729.5,350,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v10700/v10768R001.pdf
+v14497,2024,Ford Mustang coupe,56.33,1773.2,539,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v14400/v14497R001.pdf
+v14439,2023,Honda CR-V AWD EX SUV,56.53,1805.5,611,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v14400/v14439R001.pdf
+v15456,2025,Mitsubishi Outlander SUV,56.34,1926.5,473,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v15400/v15456R001.pdf
+v15410,2025,Cadillac CT5 V6 sedan,56.21,2056.5,407,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v15400/v15410R001.pdf
+v15124,2024,Jeep Wrangler 4-door,56.51,2087.2,425,https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v15100/v15124R001.pdf

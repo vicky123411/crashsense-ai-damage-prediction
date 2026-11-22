@@ -1,0 +1,158 @@
+{
+ "n_tests": 15,
+ "measured_mean_m": 0.4647333333333333,
+ "measured_sd_m": 0.08635080904208264,
+ "uncalibrated": {
+  "mae_m": 0.21308303217405902,
+  "bias_m": 0.21308303217405902,
+  "mean_m": 0.6778163655073921
+ },
+ "calibrated_leave_one_out": {
+  "mae_m": 0.07199373395929724,
+  "bias_m": -0.016127048279843164,
+  "scales": [
+   3.4,
+   3.45,
+   3.45,
+   3.45,
+   3.25,
+   3.45,
+   3.25,
+   3.25,
+   3.45,
+   3.35,
+   3.4,
+   3.4,
+   3.25,
+   3.25,
+   3.25
+  ]
+ },
+ "average_of_other_tests": {
+  "mae_m": 0.07708571428571426
+ },
+ "force_scale_all_tests": 3.35,
+ "corr_mass_measured": 0.1514829256273789,
+ "per_test": [
+  {
+   "report": "v10576",
+   "vehicle": "2019 Nissan Versa S sedan",
+   "mass_kg": 1261.0,
+   "measured_m": 0.379,
+   "layer_m": 0.6439634670074689,
+   "calibrated_loo_m": 0.37550145995617285
+  },
+  {
+   "report": "v10688",
+   "vehicle": "2019 Kia Forte sedan",
+   "mass_kg": 1455.0,
+   "measured_m": 0.421,
+   "layer_m": 0.6600325901754198,
+   "calibrated_loo_m": 0.4051355084164237
+  },
+  {
+   "report": "v10387",
+   "vehicle": "2019 Honda Insight LX sedan",
+   "mass_kg": 1530.0,
+   "measured_m": 0.437,
+   "layer_m": 0.664915696146742,
+   "calibrated_loo_m": 0.4162858817169319
+  },
+  {
+   "report": "v14258",
+   "vehicle": "2023 Acura Integra A-Spec hatchback",
+   "mass_kg": 1573.5,
+   "measured_m": 0.47,
+   "layer_m": 0.6680116668188797,
+   "calibrated_loo_m": 0.4233554044601411
+  },
+  {
+   "report": "v15046",
+   "vehicle": "2024 Kia Seltos SUV",
+   "mass_kg": 1590.4,
+   "measured_m": 0.414,
+   "layer_m": 0.6712423918705078,
+   "calibrated_loo_m": 0.4471233305946791
+  },
+  {
+   "report": "v14316",
+   "vehicle": "2023 Kia Niro EX Touring SUV",
+   "mass_kg": 1634.5,
+   "measured_m": 0.623,
+   "layer_m": 0.6731660627090833,
+   "calibrated_loo_m": 0.4351252572243264
+  },
+  {
+   "report": "v10555",
+   "vehicle": "2019 Toyota C-HR hatchback",
+   "mass_kg": 1646.0,
+   "measured_m": 0.393,
+   "layer_m": 0.6760042807890216,
+   "calibrated_loo_m": 0.4571715490449529
+  },
+  {
+   "report": "v15005",
+   "vehicle": "2023 Honda Accord LX sedan",
+   "mass_kg": 1647.5,
+   "measured_m": 0.417,
+   "layer_m": 0.6741090805886136,
+   "calibrated_loo_m": 0.4540721260717199
+  },
+  {
+   "report": "v14257",
+   "vehicle": "2022 Toyota Corolla Cross LE AWD SUV",
+   "mass_kg": 1727.0,
+   "measured_m": 0.612,
+   "layer_m": 0.680232655941216,
+   "calibrated_loo_m": 0.45126153461905805
+  },
+  {
+   "report": "v10768",
+   "vehicle": "2019 Honda CR-V AWD LX",
+   "mass_kg": 1729.5,
+   "measured_m": 0.35,
+   "layer_m": 0.6790777348992665,
+   "calibrated_loo_m": 0.4562493103893244
+  },
+  {
+   "report": "v14497",
+   "vehicle": "2024 Ford Mustang coupe",
+   "mass_kg": 1773.2,
+   "measured_m": 0.539,
+   "layer_m": 0.683639349121072,
+   "calibrated_loo_m": 0.4599601155559085
+  },
+  {
+   "report": "v14439",
+   "vehicle": "2023 Honda CR-V AWD EX SUV",
+   "mass_kg": 1805.5,
+   "measured_m": 0.611,
+   "layer_m": 0.686924550533673,
+   "calibrated_loo_m": 0.46446897125748465
+  },
+  {
+   "report": "v15456",
+   "vehicle": "2025 Mitsubishi Outlander SUV",
+   "mass_kg": 1926.5,
+   "measured_m": 0.473,
+   "layer_m": 0.6948451070227849,
+   "calibrated_loo_m": 0.4842235775250867
+  },
+  {
+   "report": "v15410",
+   "vehicle": "2025 Cadillac CT5 V6 sedan",
+   "mass_kg": 2056.5,
+   "measured_m": 0.407,
+   "layer_m": 0.7036187646435418,
+   "calibrated_loo_m": 0.4968209675167386
+  },
+  {
+   "report": "v15124",
+   "vehicle": "2024 Jeep Wrangler 4-door",
+   "mass_kg": 2087.2,
+   "measured_m": 0.425,
+   "layer_m": 0.7074620843435936,
+   "calibrated_loo_m": 0.5023392814534037
+  }
+ ]
+}
