@@ -58,7 +58,7 @@ print(f"trained model, one request, {runner}: {med['model']:7.2f} ms")
 print(f"trained model, one request, PyTorch:        {med['torch']:7.2f} ms")
 
 t0 = time.perf_counter()
-inputs = [dataset.scenario_inputs(sc) for sc in scenarios]
+inputs = [dataset.scenario_inputs(sc, frame="body") for sc in scenarios]
 t_feat = (time.perf_counter() - t0) / len(scenarios) * 1e3
 nx = np.stack([i["node_x"] for i in inputs])
 gx = np.stack([i["glob_x"] for i in inputs])
