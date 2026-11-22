@@ -1,7 +1,7 @@
 """Random scenarios, labels from the physics layer, and train / test splits."""
 import numpy as np
 
-from .features import global_features, node_features, physics_features
+from .features import global_features, global_features_impact, node_features, node_features_impact, physics_features
 from .metrics import level_from_damage
 from .obstacles import PRESET_NAMES, sample_obstacle
 from .physics import Scenario, contact_geometry, simulate
@@ -20,18 +20,26 @@ def random_scenario(rng, preset=None, face=None):
                     speed=float(rng.uniform(4, 36)))
 
 
-def scenario_inputs(sc, geo=None):
-    """Model inputs of one scenario (nothing here comes out of the solver)."""
+def scenario_inputs(sc, geo=None, frame="both", physics=True):
+    """Model inputs of one scenario (nothing here comes out of the solver).
+
+    frame: "body", "impact" or "both" (which coordinate frame(s) to build); physics: add the
+    closed-form physics features. A single request only builds what its model needs."""
     geo = geo or contact_geometry(sc)
-    phys_node, phys_glob = physics_features(sc, geo)
-    return dict(node_x=node_features(sc, geo), glob_x=global_features(sc, geo),
-                phys_node=phys_node, phys_glob=phys_glob)
+    out = {}
+    if frame in ("body", "both"):
+        out.update(node_x=node_features(sc, geo), glob_x=global_features(sc, geo))
+    if frame in ("impact", "both"):
+        out.update(node_xi=node_features_impact(sc, geo), glob_xi=global_features_impact(sc, geo))
+    if physics:
+        out["phys_node"], out["phys_glob"] = physics_features(sc, geo)
+    return out
 
 
 def generate(n, seed=0, source="physics_layer"):
     """Make n random crashes and label them. Returns a dict of numpy arrays."""
     rng = np.random.default_rng(seed)
-    out = {k: [] for k in ["node_x", "glob_x", "phys_node", "phys_glob", "damage", "level", "detached", "direct",
+    out = {k: [] for k in ["node_x", "glob_x", "node_xi", "glob_xi", "phys_node", "phys_glob", "damage", "level", "detached", "direct",
                            "ecap_kj", "e_diss_kj", "glob_reg", "obstacle_level", "flags", "speed", "face", "preset"]}
     for _ in range(n):
         sc = random_scenario(rng)
@@ -51,7 +59,7 @@ def generate(n, seed=0, source="physics_layer"):
         out["face"].append(FACES.index(sc.face))
         out["preset"].append(PRESET_NAMES.index(sc.obstacle.name))
     data = {k: np.array(v) for k, v in out.items()}
-    for k in ("node_x", "glob_x", "phys_node", "phys_glob", "damage", "detached", "direct", "ecap_kj", "glob_reg", "flags"):
+    for k in ("node_x", "glob_x", "node_xi", "glob_xi", "phys_node", "phys_glob", "damage", "detached", "direct", "ecap_kj", "glob_reg", "flags"):
         data[k] = data[k].astype(np.float32)
     for k in ("level", "obstacle_level", "face", "preset"):
         data[k] = data[k].astype(np.int64)

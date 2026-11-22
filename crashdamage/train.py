@@ -24,6 +24,7 @@ class TrainConfig:
     weight_decay: float = 1e-5
     patience: int = 12                 # stop when the validation loss has not improved for this many epochs
     physics_features: bool = False     # add impact energy and part capacities as inputs
+    impact_frame: bool = False         # measure part positions from the hit point instead of the car body
     energy_loss: float = 0.0           # weight of the energy-consistency penalty (0 = off)
     detach_pos_weight: float = 4.0     # parts rarely fall off, so the positive class is up-weighted
     node_weight: float = 5.0
@@ -40,7 +41,10 @@ class Bundle:
 
 
 def model_inputs(data, idx, cfg):
-    nx, gx = data["node_x"][idx], data["glob_x"][idx]
+    if cfg.impact_frame:
+        nx, gx = data["node_xi"][idx], data["glob_xi"][idx]
+    else:
+        nx, gx = data["node_x"][idx], data["glob_x"][idx]
     if cfg.physics_features:
         nx = np.concatenate([nx, data["phys_node"][idx]], axis=2)
         gx = np.concatenate([gx, data["phys_glob"][idx]], axis=1)
@@ -154,7 +158,7 @@ def save_bundle(path, b):
 
 def load_bundle(path):
     ck = torch.load(path, map_location="cpu", weights_only=True)
-    cfg = TrainConfig(**ck["cfg"])
+    cfg = TrainConfig(**{k: v for k, v in ck["cfg"].items() if k in TrainConfig.__dataclass_fields__})
     model = build_model(cfg.kind, ck["n_node_feat"], ck["n_glob_feat"], cfg.hidden, cfg.layers, cfg.dropout)
     model.load_state_dict(ck["state"])
     model.eval()

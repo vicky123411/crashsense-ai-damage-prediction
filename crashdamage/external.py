@@ -75,7 +75,7 @@ def load_fe_dataset(cases_csv, parts_csv):
             if pid not in PART_INDEX:
                 raise ValueError(f"unknown part_id {pid!r} (case {row['case_id']}); known ids: {', '.join(PART_NAMES)}")
             labels[row["case_id"]][pid] = (float(row["damage"]), float(row.get("detached") or 0))
-    out = {k: [] for k in ["node_x", "glob_x", "phys_node", "phys_glob", "damage", "level", "detached", "direct",
+    out = {k: [] for k in ["node_x", "glob_x", "node_xi", "glob_xi", "phys_node", "phys_glob", "damage", "level", "detached", "direct",
                            "ecap_kj", "e_diss_kj", "glob_reg", "obstacle_level", "flags", "speed", "face", "preset"]}
     for row in cases:
         cid = row["case_id"]
@@ -104,7 +104,7 @@ def load_fe_dataset(cases_csv, parts_csv):
         out["face"].append(FACES.index(sc.face))
         out["preset"].append(PRESET_NAMES.index(sc.obstacle.name) if sc.obstacle.name in PRESET_NAMES else -1)
     data = {k: np.array(v) for k, v in out.items()}
-    for k in ("node_x", "glob_x", "phys_node", "phys_glob", "damage", "detached", "direct", "ecap_kj", "glob_reg",
+    for k in ("node_x", "glob_x", "node_xi", "glob_xi", "phys_node", "phys_glob", "damage", "detached", "direct", "ecap_kj", "glob_reg",
               "flags", "e_diss_kj", "speed"):
         data[k] = data[k].astype(np.float32)
     for k in ("level", "obstacle_level", "face", "preset"):

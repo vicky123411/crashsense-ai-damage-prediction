@@ -7,6 +7,7 @@ a graph (edges = load paths and fixings) that is used both by the physics layer
 and by the graph neural network.
 """
 from dataclasses import dataclass, replace
+from functools import lru_cache
 import numpy as np
 
 from .materials import MATERIALS, material_features
@@ -187,12 +188,14 @@ def sample_vehicle(rng):
     return Vehicle(parts, float(rng.uniform(900, 1900)))
 
 
+@lru_cache(maxsize=4096)
 def part_static_features(p):
-    """Numbers describing one part (material, thickness, size, position, kind...)."""
+    """Numbers describing one part (material, thickness, size, position, kind...).
+    Cached: a part is an immutable record, and the same parts come back on every request."""
     kind = [1.0 if p.kind == k else 0.0 for k in KINDS]
     attach = np.log10(p.attach_kn) if np.isfinite(p.attach_kn) else 3.0
-    return (material_features(p.material) + [p.thickness_mm, np.log10(p.mass_kg)]
-            + list(p.center) + list(p.size) + [p.crush_eff, attach] + list(p.section) + kind)
+    return tuple(material_features(p.material) + [p.thickness_mm, float(np.log10(p.mass_kg))]
+                 + list(p.center) + list(p.size) + [p.crush_eff, float(attach)] + list(p.section) + kind)
 
 
 PART_FEATURE_NAMES = (

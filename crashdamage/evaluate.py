@@ -22,6 +22,14 @@ VARIANT_INFO = {
     "gnn_phys_energy": "graph network + energy inputs + energy-consistency loss",
 }
 
+# Tried for the unseen-side split but not part of the default benchmark: inputs measured from the
+# hit point instead of the car body. Run with --models gnn_imp,node_mlp_imp,gnn_phys_imp.
+EXTRA_VARIANTS = {
+    "node_mlp_imp": "per-part MLP, inputs measured from the hit point",
+    "gnn_imp": "graph network, inputs measured from the hit point",
+    "gnn_phys_imp": "graph network + energy inputs, measured from the hit point",
+}
+
 
 def variant_config(name, epochs):
     table = {
@@ -30,6 +38,9 @@ def variant_config(name, epochs):
         "gnn": dict(kind="gnn"),
         "gnn_phys": dict(kind="gnn", physics_features=True),
         "gnn_phys_energy": dict(kind="gnn", physics_features=True, energy_loss=1.0),
+        "node_mlp_imp": dict(kind="node_mlp", impact_frame=True),
+        "gnn_imp": dict(kind="gnn", impact_frame=True),
+        "gnn_phys_imp": dict(kind="gnn", physics_features=True, impact_frame=True),
     }
     return TrainConfig(epochs=epochs, **table[name])
 

@@ -1,0 +1,9 @@
+full-width rigid wall, 56 km/h, front, no angle
+ mass kg  physics layer m  CRASH3 mean m  CRASH3 range (+-1 SD) m
+    1000             0.62           0.41        0.35 to  0.51
+    1100             0.63           0.43        0.37 to  0.53
+    1250             0.64           0.46        0.40 to  0.58
+    1634             0.67              -                        -
+    1926             0.69              -                        -
+
+measured (NHTSA NCAP, 56.3 km/h, maximum static crush): Kia Niro 2023, 1634.5 kg: 0.62 m; Mitsubishi Outlander 2025, 1926.5 kg: 0.47 m

@@ -17,8 +17,12 @@ from .train import load_bundle, predict_arrays
 
 
 class Predictor:
-    def __init__(self, model_path=None):
+    def __init__(self, model_path=None, fast=True):
         self.bundle = load_bundle(model_path) if model_path else None
+        self.fast = None
+        if self.bundle is not None and fast and self.bundle.cfg.kind in ("gnn", "node_mlp"):
+            from .fast import FastGraphNet
+            self.fast = FastGraphNet(self.bundle)
 
     @property
     def has_model(self):
@@ -42,21 +46,26 @@ class Predictor:
 
     def _from_model(self, sc):
         geo = contact_geometry(sc)
-        inp = scenario_inputs(sc, geo)
-        nx, gx = inp["node_x"][None], inp["glob_x"][None]
-        if self.bundle.cfg.physics_features:
-            nx = np.concatenate([nx, inp["phys_node"][None]], axis=2)
-            gx = np.concatenate([gx, inp["phys_glob"][None]], axis=1)
-        out = predict_arrays(self.bundle, nx, gx)
+        cfg = self.bundle.cfg
+        impact = getattr(cfg, "impact_frame", False)
+        inp = scenario_inputs(sc, geo, frame="impact" if impact else "body", physics=cfg.physics_features)
+        nx, gx = (inp["node_xi"], inp["glob_xi"]) if impact else (inp["node_x"], inp["glob_x"])
+        if cfg.physics_features:
+            nx = np.concatenate([nx, inp["phys_node"]], axis=1)
+            gx = np.concatenate([gx, inp["phys_glob"]])
+        if self.fast is not None:
+            out = self.fast.predict_one(nx, gx)
+        else:
+            out = {k: v[0] for k, v in predict_arrays(self.bundle, nx[None], gx[None]).items()}
 
-        damage = np.clip(out["damage"][0], 0.0, 1.0)
+        damage = np.clip(out["damage"], 0.0, 1.0)
         damage = np.where(damage < 0.01, 0.0, damage)
-        crush, intrusion, peak_mn, obstacle_damage = (float(v) for v in out["reg"][0])
+        crush, intrusion, peak_mn, obstacle_damage = (float(v) for v in out["reg"])
         obstacle_damage = float(np.clip(obstacle_damage, 0.0, 1.0))
-        airbag_front, airbag_side, through = (bool(p >= 0.5) for p in out["flags_prob"][0])
+        airbag_front, airbag_side, through = (bool(p >= 0.5) for p in out["flags_prob"])
         e_diss, dv, v_obs, _ = impact_energy(sc, geo)
 
-        res = Result(damage=damage, level=level_from_damage(damage), detached=out["detach_prob"][0] >= 0.5,
+        res = Result(damage=damage, level=level_from_damage(damage), detached=out["detach_prob"] >= 0.5,
                      direct=geo["overlap"] > MIN_OVERLAP, crush_depth=max(crush, 0.0), intrusion=max(intrusion, 0.0),
                      peak_force_kn=max(peak_mn, 0.0) * 1000.0, e_diss_kj=e_diss / 1e3, e_car_kj=0.0, e_obstacle_kj=0.0,
                      obstacle_damage=obstacle_damage, obstacle_level=int(level_from_damage(obstacle_damage)),
