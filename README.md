@@ -347,6 +347,20 @@ The layer is in the right range but crushes somewhat too deep, and its crush dep
 also prints the CRASH3 stiffness model with the average coefficients of 800–1250 kg cars (Kodsi et al., 2017,
 *Accident Reconstruction Journal*), which gives 0.41–0.46 m. This is a plausibility check, not a validation.
 
+**15 tests.** `python scripts/real_crash_tests.py` repeats this for 15 NCAP full-frontal tests of 2019–2025 cars
+(1261–2087 kg; list and report links in [`data_real/nhtsa_ncap_frontal.csv`](data_real/nhtsa_ncap_frontal.csv),
+numbers in [`results/real_crash_tests.json`](results/real_crash_tests.json)):
+
+| | mean error of the crush depth |
+|---|---:|
+| physics layer as published | 0.21 m (always too deep; measured mean 0.46 m) |
+| one force multiplier fitted on the other 14 tests (leave-one-out, ×3.25–3.45) | 0.072 m |
+| just guessing the average of the other 14 tests | 0.077 m |
+
+One multiplier removes the bias, but the layer is then hardly better than the average: it uses one generic car, so it
+cannot tell a Versa from a Wrangler, and in these tests the crush depth barely follows the mass (correlation 0.15).
+The multiplier is not applied by default because it was fitted on full-width barrier tests only.
+
 ## Repository layout
 
 ```
@@ -376,8 +390,9 @@ tests/           pytest; tests/web/ has the JavaScript parity check
 
 ## Limitations
 
-* **No real data.** Only the crush depth was checked against two crash tests (see above); there is no comparison of
-  part damage with crash tests or solver runs. The constants were chosen for plausible magnitudes, not fitted.
+* **Little real data.** Only the crush depth was checked, against 15 full-frontal crash tests (see above): it is
+  about 0.2 m too deep unless the crush force is scaled up, and even then it cannot tell car models apart. There is
+  no comparison of part damage with crash tests or solver runs. The constants were chosen for plausible magnitudes.
 * **A side never seen in training is predicted badly.** A few labelled crashes on every side fix most of it.
 * **One car layout**: a compact car made of 28 boxes. Variants differ in mass, materials and thickness only.
 * **Quasi-static energy model**: no time history, only a small restitution, no friction, no sliding off a glancing hit.
@@ -396,8 +411,10 @@ tests/           pytest; tests/web/ has the JavaScript parity check
   (0.54 m), and the website calls both "Heavy damage", which is probably more than a real 12 km/h hit would do.
 * **Models inherit the physics layer's assumptions** and are only as good as that layer; the scores are agreement
   scores, not accuracy.
-* **The Unity scripts were never run in Unity.** They compile (C# 9) against stand-in Unity types, which only catches
-  typos and wrong names between the scripts, not problems with the real Unity API. Expect small fixes on first import.
+* **Unity.** The in-game version (`unity/Assets/Scripts/CrashSense`, no server needed) matches the Python results
+  on all 55 reference cases and compiles against the real Unity 6 libraries, but it has not yet been played in the
+  Ramp Run scene, and the mapping from a Unity contact to a scenario (side, offset, angle, obstacle preset) is a
+  first guess. The older server-based scripts (`CollisionDamage/`) were only compiled against stand-in types.
 * **The CSV importer for solver labels** was only tested on files this project writes itself.
 
 ## Ideas for next steps
@@ -407,7 +424,8 @@ tests/           pytest; tests/web/ has the JavaScript parity check
 * More vehicle layouts, and car-to-car crashes where both bodies are deformable.
 * Make damage depend on how much of a part's width is touched, so that narrow objects stop damaging whole parts.
 * A mesh-level graph network for the shape of the dent, not only per-part damage.
-* Try the Unity scripts in the Ramp Run scene and tune the dent and effect parameters with artists.
+* Play the in-game version in the Ramp Run scene, check the side/offset/angle mapping against recorded crashes,
+  and tune the dent and effect parameters with artists.
 
 ## License
 

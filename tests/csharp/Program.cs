@@ -37,7 +37,7 @@ static class Program
         string root = args.Length > 0 ? args[0] : Path.Combine("..", "..");
         string data = Path.Combine(root, "docs", "data");
         var tables = Tables.FromJson(File.ReadAllText(Path.Combine(data, "static.json")));
-        var ph = new Physics(tables);
+        var ph = new CrashPhysics(tables);
         var model = GraphModel.Load(File.ReadAllText(Path.Combine(data, "model.json")), File.ReadAllBytes(Path.Combine(data, "model.bin")));
         var doc = MiniJson.O(MiniJson.Parse(File.ReadAllText(Path.Combine(root, "tests", "web", "parity_cases.json"))));
 

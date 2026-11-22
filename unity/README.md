@@ -1,5 +1,40 @@
 # Unity side
 
+There are two ways to use CrashSense in Unity.
+
+## 1. In-game, no server (`Assets/Scripts/CrashSense`) — recommended
+
+A C# copy of the physics layer and of the trained graph network runs inside the game, so nothing else has to run.
+
+| file | job |
+|---|---|
+| `Scripts/CrashSense/CrashSenseEngine.cs` | physics layer (`CrashPhysics`) and graph network (`GraphModel`), plain C# |
+| `Scripts/CrashSense/MiniJson.cs` | small JSON reader for the data files |
+| `Scripts/CrashSense/CrashSenseCar.cs` | on a crash: builds the scenario, runs both engines, shows a report on screen, saves it |
+| `Editor/CrashSense/CrashSenseMenu.cs` | menu *Tools → CrashSense → Self Test* |
+| `StreamingAssets/CrashSense/` | `static.json` (car and obstacle tables), `model.json` + `model.bin` (network weights) |
+
+**Checks done:** the C# engine gives the same results as Python on all 55 reference cases in
+`tests/web/parity_cases.json` (physics exactly, network within 1.4e-6): `dotnet run --project tests/csharp`.
+The scripts compile without warnings against the real Unity 6 (6000.6) libraries and Ramp Run's scripts
+(`tests/unity_compile`). They have not been played in a scene yet.
+
+**Set-up for Ramp Run:** copy the three folders into `Assets/`. `CrashSenseCar` adds itself to every object that
+has `CarDamage`; on any other car add it by hand (it needs a `Rigidbody`). Then:
+
+1. *Tools → CrashSense → Self Test* runs five fixed crashes through both engines and writes `Captures/crashsense_selftest.txt`.
+2. Press Play and crash (or *Tools → Ramp Run → Record Crash Test 65 kmh*). The report appears top-right: a top view
+   of the 28 parts coloured by damage, the worst parts, crush depth, effects and the time each engine took.
+3. Every crash is appended to `Captures/crashsense_reports.jsonl` (one JSON line per crash, both engines).
+
+How a Unity crash becomes a scenario: the side is where the contact point lies on the car's bounding box, the
+offset is the position along that side, the angle is between the closing velocity and the side's normal, the speed
+is `relativeVelocity.magnitude`, and the obstacle preset comes from the `ImpactSurface` kind and the collider's size
+(fixed if it has no `Rigidbody`, otherwise its mass is used). Only the report is produced; `CarDamage` still breaks
+the car as before.
+
+## 2. Through the Python server (`Assets/Scripts/CollisionDamage`)
+
 Scripts that ask the Python server for a damage report and show it on a car and an obstacle.
 They only change how things look. They do not change how Unity's physics resolves the crash.
 
@@ -8,7 +43,7 @@ They only change how things look. They do not change how Unity's physics resolve
 > Unity assemblies or run inside Unity, so expect to fix small things (names, versions, materials) the first
 > time you import them. They were written for Unity 2021.3 or newer.
 
-## Files (`Assets/Scripts/CollisionDamage/`)
+### Files
 
 | file | job |
 |---|---|
@@ -20,7 +55,7 @@ They only change how things look. They do not change how Unity's physics resolve
 | `CollisionDamageApplier.cs` | dents meshes, darkens paint, cracks glass, tears parts off, spawns effects |
 | `CarCrashController.cs` | glue on the car: `OnCollisionEnter` → server → applier |
 
-## Set-up
+### Set-up
 
 1. Start the server in the repo folder (the physics layer works without a model):
 

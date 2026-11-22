@@ -215,10 +215,10 @@ namespace CrashSense
     }
 
     /// <summary>The physics layer (crashdamage/physics.py).</summary>
-    public class Physics
+    public class CrashPhysics
     {
         public readonly Tables T;
-        public Physics(Tables t) { T = t; }
+        public CrashPhysics(Tables t) { T = t; }
         double K(string name) { return T.C[name]; }
 
         public Vehicle DefaultVehicle(double massKg = 1100.0)
@@ -799,7 +799,7 @@ namespace CrashSense
             for (int k = 0; k < 3; k++) flags[k] = MathX.Sigmoid(og[4 + k]);
         }
 
-        public Result Predict(Physics ph, Scenario sc)
+        public Result Predict(CrashPhysics ph, Scenario sc)
         {
             var T = ph.T; int n = T.NParts;
             var geo = ph.ContactGeometry(sc);

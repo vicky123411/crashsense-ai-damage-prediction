@@ -1,0 +1,5 @@
+is_global = true
+build_property.RootNamespace = UnityCompile
+build_property.ProjectDir = /home/claude/collision-damage-prediction/tests/unity_compile/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
