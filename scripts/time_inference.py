@@ -42,8 +42,20 @@ for sc in scenarios[:20]:                      # warm-up
     physics.predict(sc, "physics")
     model.predict(sc, "model")
 
-print(f"physics layer, one request at a time:       {ms_each(lambda s: physics.predict(s, 'physics')):7.2f} ms")
-print(f"trained model, one request at a time:       {ms_each(lambda s: model.predict(s, 'model')):7.2f} ms")
+# timings on a shared machine jump around: alternate the two engines and keep the median of 7 rounds
+slow = Predictor(args.model, fast=False)
+for sc in scenarios[:20]:
+    slow.predict(sc, "model")
+rounds = {"physics": [], "model": [], "torch": []}
+for _ in range(7):
+    rounds["physics"].append(ms_each(lambda s: physics.predict(s, "physics")))
+    rounds["model"].append(ms_each(lambda s: model.predict(s, "model")))
+    rounds["torch"].append(ms_each(lambda s: slow.predict(s, "model")))
+med = {k: float(np.median(v)) for k, v in rounds.items()}
+runner = type(model.fast).__name__ if model.fast is not None else "PyTorch"
+print(f"physics layer, one request at a time:       {med['physics']:7.2f} ms  (median of 7 rounds)")
+print(f"trained model, one request, {runner}: {med['model']:7.2f} ms")
+print(f"trained model, one request, PyTorch:        {med['torch']:7.2f} ms")
 
 t0 = time.perf_counter()
 inputs = [dataset.scenario_inputs(sc) for sc in scenarios]

@@ -21,8 +21,8 @@ class Predictor:
         self.bundle = load_bundle(model_path) if model_path else None
         self.fast = None
         if self.bundle is not None and fast and self.bundle.cfg.kind in ("gnn", "node_mlp"):
-            from .fast import FastGraphNet
-            self.fast = FastGraphNet(self.bundle)
+            from .fast import fast_runner
+            self.fast = fast_runner(self.bundle)
 
     @property
     def has_model(self):

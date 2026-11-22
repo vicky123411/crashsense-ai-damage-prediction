@@ -16,6 +16,8 @@ MODEL = os.path.join(os.path.dirname(__file__), "..", "models", "gnn_demo.pt")
 def test_fast_matches_torch():
     fast, slow = Predictor(MODEL), Predictor(MODEL, fast=False)
     assert fast.fast is not None and slow.fast is None
+    from crashdamage.fast import FastGraphNet
+    numpy_only = FastGraphNet(fast.bundle)
     rng = np.random.default_rng(7)
     worst = 0.0
     for _ in range(60):

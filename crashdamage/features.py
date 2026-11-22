@@ -5,6 +5,8 @@ thicknesses, layout, where the obstacle touches, speed, masses. Nothing that com
 out of the energy solver is fed to the models.
 """
 import math
+from functools import lru_cache
+
 import numpy as np
 
 from .obstacles import OBSTACLE_FEATURE_NAMES, obstacle_features
@@ -22,9 +24,52 @@ N_NODE_FEATURES = len(NODE_FEATURE_NAMES)
 N_GLOBAL_FEATURES = len(GLOBAL_FEATURE_NAMES)
 
 
+@lru_cache(maxsize=256)
+def _static_matrix(parts):
+    """Static features of a whole parts list (cached: the same car variant is asked about again and again)."""
+    m = np.array([part_static_features(p) for p in parts], dtype=np.float32)
+    m.setflags(write=False)
+    return m
+
+
+_MAT_COLS = list(range(5))                                   # material_features columns
+_THICK_COL = PART_FEATURE_NAMES.index("thickness_mm")
+
+
+@lru_cache(maxsize=64)
+def _material_row(name):
+    from .materials import material_features
+    return np.array(material_features(name), dtype=np.float32)
+
+
+def _template_static():
+    from .vehicle import PART_TEMPLATE
+    return _static_matrix(tuple(PART_TEMPLATE)), PART_TEMPLATE
+
+
+def _fast_static(parts):
+    """Static features without rebuilding every row: a car variant only changes the material and
+    the thickness of template parts, so the other columns are copied from the template."""
+    base, template = _template_static()
+    if len(parts) != len(template):
+        return None
+    m = base.copy()
+    for i, (p, t) in enumerate(zip(parts, template)):
+        if (p.name is not t.name and p.name != t.name) or p.center != t.center or p.size != t.size \
+                or p.kind != t.kind or p.mass_kg != t.mass_kg or p.attach_kn != t.attach_kn \
+                or p.crush_eff != t.crush_eff or p.section != t.section:
+            return None
+        if p.material != t.material:
+            m[i, _MAT_COLS] = _material_row(p.material)
+        m[i, _THICK_COL] = p.thickness_mm
+    return m
+
+
 def node_features(sc, geo=None):
     geo = geo or contact_geometry(sc)
-    static = np.array([part_static_features(p) for p in sc.vehicle.parts], dtype=np.float32)
+    static = _fast_static(sc.vehicle.parts)
+    if static is None:
+        static = _static_matrix(tuple(sc.vehicle.parts))
     dyn = np.stack([geo["overlap"], geo["depth_start"], geo["stroke"], geo["dist"],
                     (geo["overlap"] > MIN_OVERLAP).astype(float)], axis=1).astype(np.float32)
     return np.concatenate([static, dyn], axis=1)

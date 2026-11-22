@@ -135,8 +135,8 @@ def contact_geometry(sc):
                 arm=abs(c), point=point)
 
 
-def _car_forces(sc, geo):
-    """Force of every part in every depth segment."""
+def _part_forces(sc, geo):
+    """Crushing force of every part (0 for parts that are not loaded) and which parts are loaded."""
     parts = sc.vehicle.parts
     ax = geo["ax"]
     sigma = np.array([MATERIALS[p.material].strength_mpa * 1e6 for p in parts])
@@ -145,7 +145,13 @@ def _car_forces(sc, geo):
     cut = np.where(t * 1e3 < SHEET_MM, SHAPE_CUT[sc.obstacle.shape], 1.0)   # the obstacle shape matters for sheet parts
     f_full = FOLD * sigma * t * sect * cut
     engaged = geo["overlap"] > MIN_OVERLAP
-    f_part = np.where(engaged, f_full * geo["overlap"], 0.0)
+    return np.where(engaged, f_full * geo["overlap"], 0.0), engaged
+
+
+def _car_forces(sc, geo):
+    """Force of every part in every depth segment."""
+    parts = sc.vehicle.parts
+    f_part, engaged = _part_forces(sc, geo)
     start = geo["depth_start"]
     end = start + geo["stroke"]
     max_depth = EXTENT[sc.face]            # nothing can be crushed deeper than the car is long (or wide)
@@ -161,7 +167,7 @@ def _car_forces(sc, geo):
 def part_capacity_kj(sc, geo=None):
     """Energy (kJ) each loaded part can take by crushing along its stroke, before it is used up."""
     geo = geo or contact_geometry(sc)
-    _, _, f_part, engaged = _car_forces(sc, geo)
+    f_part, engaged = _part_forces(sc, geo)
     return np.where(engaged, f_part * geo["stroke"], 0.0) / 1e3
 
 

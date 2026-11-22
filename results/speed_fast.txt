@@ -1,0 +1,5 @@
+1000 random scenarios, 2 CPU cores, torch threads: 2
+physics layer, one request at a time:          0.47 ms  (median of 7 rounds)
+trained model, one request, OnnxGraphNet:    0.45 ms
+trained model, one request, PyTorch:           1.08 ms
+model, whole batch at once: features 0.26 ms + network 0.093 ms per scenario
