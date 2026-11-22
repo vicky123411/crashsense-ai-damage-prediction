@@ -299,19 +299,53 @@ breakdown (by part kind, speed, obstacle, side, plus the level confusion matrix)
 
 ### Speed
 
-`python scripts/time_inference.py` times both engines on 1000 random scenarios (CPU only, 2 cores; the output is in
+`python scripts/time_inference.py` times both engines on 1000 random scenarios (CPU only, 2 cores, median of 7
+rounds; the output is in [`results/speed_fast.txt`](results/speed_fast.txt), the first version in
 [`results/speed.txt`](results/speed.txt)):
 
 | | per scenario |
 |---|---:|
-| physics layer, one request at a time | 0.44 ms |
-| demo model, one request at a time | 1.27 ms |
-| demo model, a whole batch at once | 0.18 ms for the inputs + 0.11 ms for the network |
+| physics layer, one request at a time | 0.49 ms |
+| demo model, one request, ONNX Runtime (`crashdamage/fast.py`) | 0.46 ms |
+| demo model, one request, PyTorch | 1.23 ms |
+| demo model, a whole batch at once | 0.12 ms for the inputs + 0.10 ms for the network |
 
-For a single request the model is slower than the physics layer, not faster: one request includes building the
-inputs, one PyTorch call and writing the report, and even in a batch the inputs cost more than the network. With one
-PyTorch thread the network step takes 0.18 ms instead of 0.11 ms. A learned model only pays off when its labels come
-from a solver that is much slower than the physics layer, which this repository has not done (see `external.py`).
+Most of the PyTorch time for one request is library overhead (dozens of small layer calls), not arithmetic.
+`Predictor` therefore exports the network to ONNX in memory and runs it with ONNX Runtime when it is installed
+(`pip install onnx onnxruntime`, or `pip install .[fast]`); otherwise it uses a NumPy copy of the network, and
+`Predictor(path, fast=False)` keeps PyTorch. Static part features are cached, since a car variant only changes the
+materials and thicknesses. With this a single request is as fast as the physics layer; a learned model still only pays
+off clearly in batches, or when its labels come from a solver much slower than the physics layer (see `external.py`).
+
+### Closing the unseen-side gap
+
+All models do badly when one side of the car is never hit in training (the `face` split). Since labels are free,
+`python scripts/few_shot_side.py` moves k rear crashes into training and tests on the same 620 other rear crashes
+(damage MAE in points, mean of three seeds, [`results/few_shot_side.json`](results/few_shot_side.json)):
+
+| rear crashes in training | 0 | 25 | 50 | 100 | 200 |
+|---|---:|---:|---:|---:|---:|
+| graph network | 10.96 | 6.96 | 6.18 | 5.51 | 5.00 |
+| per-part MLP | 9.70 | 8.95 | 8.21 | 7.42 | 6.65 |
+| graph network, inputs measured from the hit point | 10.75 | 9.49 | 8.23 | 6.60 | 5.38 |
+
+25 rear crashes (0.4 % of the training set) cut the graph network's error on the rear by 36 % and make it the best
+model again. Giving the inputs relative to the hit point instead of the car body (`impact_frame=True`, the
+`*_imp` variants) did not help, so it is left out of the default benchmark.
+
+### Rough check against crash tests
+
+`python scripts/crash_test_check.py` compares the physics layer's crush depth in a head-on 56 km/h hit into a rigid
+wall with two NHTSA NCAP frontal barrier tests ([`results/crash_test_check.txt`](results/crash_test_check.txt)):
+
+| car mass | physics layer | measured maximum crush (after spring-back) |
+|---:|---:|---:|
+| 1635 kg | 0.67 m | 0.62 m, 2023 Kia Niro ([report v14316](https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v14300/v14316R001.pdf)) |
+| 1927 kg | 0.69 m | 0.47 m, 2025 Mitsubishi Outlander ([report v15456](https://nrd-static.nhtsa.dot.gov/reports/vehdb/v10000/v15400/v15456R001.pdf)) |
+
+The layer is in the right range but crushes somewhat too deep, and its crush depth hardly grows with mass. The script
+also prints the CRASH3 stiffness model with the average coefficients of 800–1250 kg cars (Kodsi et al., 2017,
+*Accident Reconstruction Journal*), which gives 0.41–0.46 m. This is a plausibility check, not a validation.
 
 ## Repository layout
 
@@ -342,8 +376,9 @@ tests/           pytest; tests/web/ has the JavaScript parity check
 
 ## Limitations
 
-* **No real data.** There is no comparison with crash tests or solver runs. The constants were chosen for plausible
-  magnitudes (a 1.1 t car into a rigid wall at 56 km/h crushes about 0.6 m), not fitted.
+* **No real data.** Only the crush depth was checked against two crash tests (see above); there is no comparison of
+  part damage with crash tests or solver runs. The constants were chosen for plausible magnitudes, not fitted.
+* **A side never seen in training is predicted badly.** A few labelled crashes on every side fix most of it.
 * **One car layout**: a compact car made of 28 boxes. Variants differ in mass, materials and thickness only.
 * **Quasi-static energy model**: no time history, only a small restitution, no friction, no sliding off a glancing hit.
 * **Damage spreading is a heuristic.** It follows hand-set connection weights, so far-side parts can look more damaged
