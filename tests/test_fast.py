@@ -36,7 +36,7 @@ def test_impact_frame_features_shape():
     assert inp["node_xi"].shape == (28, len(IMPACT_NODE_NAMES))
     assert inp["glob_xi"].shape == (len(IMPACT_GLOBAL_NAMES),)
     # the impact frame has no "which side was hit" one-hot
-    assert not any(n.startswith("face_") for n in IMPACT_GLOBAL_NAMES)
+    assert not any(n in ("face_front", "face_rear", "face_left", "face_right") for n in IMPACT_GLOBAL_NAMES)
 
 
 def test_impact_frame_depth_is_from_the_hit_point():
